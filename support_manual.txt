@@ -1,0 +1,10 @@
+Plaintext# GlobalTech Support Manual
+
+## Account and Login
+If you forgot your password or cannot log into your account, please navigate to the login portal and click "Forgot Password". You will receive an email with a secure reset link. Passwords must be at least 12 characters long and contain a special character. If your account is locked due to too many attempts, you must wait 15 minutes for the system to auto-unlock.
+
+## Billing and Invoices
+All invoices are generated on the 1st of the month. If you need to change your credit card on file, go to Settings -> Billing -> Update Payment Method. We accept Visa, MasterCard, and American Express.
+
+## Enterprise Upgrades
+If you are currently on a Pro tier and wish to upgrade to Enterprise, please contact your dedicated account manager. Enterprise tiers include 24/7 phone support and a dedicated SLA.

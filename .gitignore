@@ -1,0 +1,10 @@
+# Local Databases
+qdrant_db/
+leads.db
+
+# Environment Variables (Keep your API keys safe!)
+.env
+
+# Python Cache
+__pycache__/
+*.pyc

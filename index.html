@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Lead Routing Dashboard</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      /* The Midnight Theme */
+      --bg: #040814; 
+      --panel: rgba(15, 23, 42, 0.6); 
+      --stroke: rgba(255, 255, 255, 0.08);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --brand: #00f0ff; /* Cyber Blue */
+      --good: #10b981; /* Neon Emerald */
+      --warn: #f59e0b;
+      --shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      --radius: 16px;
+      --ring: rgba(0, 240, 255, 0.3);
+      --tableRowHover: rgba(255, 255, 255, 0.03);
+    }
+
+    /* Apply new fonts */
+    .font-brand { font-family: 'Space Grotesk', sans-serif; }
+    .font-ui { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .font-data { font-family: 'JetBrains Mono', monospace; }
+
+    .bb-wrap{
+      background-color: var(--bg);
+      background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 240, 255, 0.15), transparent);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 1.5rem;
+      /* Base UI Font applied globally */
+      font-family: 'Plus Jakarta Sans', sans-serif; 
+    }
+
+    .bb-panel{
+      background: var(--panel);
+      backdrop-filter: blur(12px); 
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--stroke);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .bb-focus:focus{
+      outline: none;
+      box-shadow: 0 0 0 3px var(--ring);
+      border-color: var(--brand);
+    }
+
+    .bb-skeleton{
+      background: linear-gradient(90deg, rgba(255,255,255,.03), rgba(255,255,255,.08), rgba(255,255,255,.03));
+      background-size: 200% 100%;
+      animation: bb-shimmer 1.5s infinite linear;
+    }
+    @keyframes bb-shimmer{
+      from{ background-position: 200% 0; }
+      to{ background-position: -200% 0; }
+    }
+
+    .bb-truncate{
+      max-width: 46rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: inline-block;
+      vertical-align: bottom;
+    }
+
+    .bb-muted-dot{
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--good);
+      box-shadow: 0 0 8px var(--good), 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+  </style>
+</head>
+
+<body class="bb-wrap">
+  <div class="max-w-6xl mx-auto">
+    <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8 mt-4">
+      <div class="space-y-2">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 rounded-xl border border-[rgba(0,240,255,0.3)] bg-[rgba(0,240,255,0.05)] flex items-center justify-center shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="var(--brand)" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="var(--brand)" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="var(--brand)" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-3xl font-brand font-bold tracking-tight text-white">AI Engine Nexus</h1>
+            <p class="text-sm font-ui text-[var(--muted)] mt-1">Autonomous Lead & Context Routing</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 text-sm text-[var(--muted)] ml-16">
+          <span class="bb-muted-dot" aria-hidden="true"></span>
+          <span class="text-emerald-400 font-medium font-ui">Neural Net Online</span>
+          <span class="hidden sm:inline opacity-50">•</span>
+          <span class="hidden sm:inline opacity-75 font-data text-xs" id="poll-indicator">Syncing every 3s</span>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <div class="text-right">
+          <div class="text-xs font-brand text-[var(--muted)] uppercase tracking-wider">Last Sync</div>
+          <div class="font-data text-sm font-medium text-white" id="last-updated">—</div>
+        </div>
+
+        <button
+          id="refresh-now"
+          type="button"
+          class="bb-focus font-ui inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--stroke)] bg-[rgba(255,255,255,0.05)] px-4 py-2.5 text-sm font-medium text-white hover:bg-[rgba(255,255,255,0.1)] transition-colors active:scale-[0.98]"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 11-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+          Force Sync
+        </button>
+      </div>
+    </header>
+
+    <section class="bb-panel">
+      <div class="p-4 sm:p-5 border-b border-[var(--stroke)]">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex-1">
+            <label class="block text-xs font-brand uppercase tracking-wider text-[var(--muted)] mb-2 font-semibold" for="lead-search">Global Search</label>
+            <input
+              id="lead-search"
+              type="text"
+              placeholder="Filter telemetry by company or payload..."
+              class="bb-focus w-full rounded-lg border border-[var(--stroke)] bg-[rgba(0,0,0,0.4)] px-4 py-2.5 text-sm font-ui text-white placeholder:text-[var(--muted)] transition-colors"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="md:w-48 border-l border-[var(--stroke)] pl-6">
+            <div class="text-xs font-brand uppercase tracking-wider text-[var(--muted)] mb-2 font-semibold">Extracted Signals</div>
+            <div class="flex items-baseline gap-2">
+              <div class="text-3xl font-bold font-data text-white" id="lead-count">—</div>
+              <div class="text-xs font-brand text-[var(--brand)] font-medium uppercase">Valid Leads</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full border-collapse">
+          <thead>
+            <tr class="text-left text-xs font-brand uppercase tracking-wider text-[var(--muted)] bg-[rgba(0,0,0,0.2)]">
+              <th class="px-4 sm:px-6 py-4 font-semibold border-y border-[var(--stroke)]">Timestamp</th>
+              <th class="px-4 sm:px-6 py-4 font-semibold border-y border-[var(--stroke)]">Target Entity</th>
+              <th class="px-4 sm:px-6 py-4 font-semibold border-y border-[var(--stroke)]">Capital Buffer</th>
+              <th class="px-4 sm:px-6 py-4 font-semibold border-y border-[var(--stroke)]">Raw Payload</th>
+            </tr>
+          </thead>
+
+          <tbody id="leads-table-body"></tbody>
+        </table>
+
+        <div id="empty-state" class="hidden p-16 text-center">
+          <div class="max-w-md mx-auto">
+            <div class="w-16 h-16 rounded-full border border-[var(--stroke)] bg-[rgba(0,0,0,0.4)] flex items-center justify-center mx-auto mb-4">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="text-xl font-brand font-bold text-white mb-2">Awaiting Data Packets</div>
+            <div class="text-sm font-ui text-[var(--muted)] mb-8">The LangGraph router is idle. Send a sales inquiry to the webhook to populate the matrix.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const leadsTableBody = document.getElementById('leads-table-body');
+    const emptyState = document.getElementById('empty-state');
+    const searchInput = document.getElementById('lead-search');
+    const leadCountEl = document.getElementById('lead-count');
+    const lastUpdatedEl = document.getElementById('last-updated');
+    const refreshNowBtn = document.getElementById('refresh-now');
+
+    let allLeads = [];
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function formatDate(value) {
+      try {
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return String(value ?? '');
+        return d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'}) + ' | ' + d.toLocaleDateString();
+      } catch {
+        return String(value ?? '');
+      }
+    }
+
+    function renderRow(lead) {
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-[var(--stroke)] hover:bg-[var(--tableRowHover)] transition-colors';
+
+      const date = formatDate(lead.created_at);
+      const company = lead.company_name ?? '';
+      const budget = lead.budget ?? '';
+      const message = lead.original_message ?? '';
+
+      tr.innerHTML = `
+        <td class="px-4 sm:px-6 py-4 text-sm text-[var(--muted)] font-data whitespace-nowrap">${escapeHtml(date)}</td>
+        <td class="px-4 sm:px-6 py-4 text-sm font-semibold font-ui text-[var(--text)] whitespace-nowrap">${escapeHtml(company)}</td>
+        <td class="px-4 sm:px-6 py-4 text-sm font-bold font-data whitespace-nowrap text-[var(--good)] drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">${escapeHtml(budget)}</td>
+        <td class="px-4 sm:px-6 py-4 text-sm font-ui text-[var(--muted)]">
+          <span class="bb-truncate" title="${escapeHtml(message)}">${escapeHtml(message)}</span>
+        </td>
+      `;
+      return tr;
+    }
+
+    function renderSkeleton() {
+      emptyState.classList.add('hidden');
+      leadsTableBody.innerHTML = '';
+
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < 5; i++) {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b border-[var(--stroke)]';
+
+        tr.innerHTML = `
+          <td class="px-4 sm:px-6 py-5"><div class="bb-skeleton h-4 rounded" style="width: 11rem;"></div></td>
+          <td class="px-4 sm:px-6 py-5"><div class="bb-skeleton h-4 rounded" style="width: 9rem;"></div></td>
+          <td class="px-4 sm:px-6 py-5"><div class="bb-skeleton h-4 rounded" style="width: 6rem;"></div></td>
+          <td class="px-4 sm:px-6 py-5"><div class="bb-skeleton h-4 rounded" style="width: 18rem;"></div></td>
+        `;
+        frag.appendChild(tr);
+      }
+      leadsTableBody.appendChild(frag);
+    }
+
+    function applyClientFilter() {
+      const q = (searchInput.value || '').trim().toLowerCase();
+
+      const filtered = !q
+        ? allLeads
+        : allLeads.filter(lead => {
+            const company = (lead.company_name ?? '').toString().toLowerCase();
+            const msg = (lead.original_message ?? '').toString().toLowerCase();
+            return company.includes(q) || msg.includes(q);
+          });
+
+      leadCountEl.textContent = String(filtered.length).padStart(2, '0');
+
+      if (filtered.length === 0) {
+        leadsTableBody.innerHTML = '';
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        leadsTableBody.innerHTML = '';
+        const frag = document.createDocumentFragment();
+        filtered.forEach(lead => frag.appendChild(renderRow(lead)));
+        leadsTableBody.appendChild(frag);
+      }
+    }
+
+    async function fetchLeads() {
+      try {
+        if(allLeads.length === 0) renderSkeleton();
+
+        const response = await fetch('/api/v1/leads', { cache: 'no-store' });
+        const leads = await response.json();
+
+        allLeads = Array.isArray(leads) ? leads : [];
+        lastUpdatedEl.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+
+        applyClientFilter();
+      } catch (error) {
+        console.error('Network Error:', error);
+      }
+    }
+
+    searchInput.addEventListener('input', () => applyClientFilter());
+    refreshNowBtn.addEventListener('click', () => {
+      renderSkeleton();
+      fetchLeads();
+    });
+
+    fetchLeads();
+    setInterval(fetchLeads, 3000);
+  </script>
+</body>
+</html>
